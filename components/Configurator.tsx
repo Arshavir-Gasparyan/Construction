@@ -4,12 +4,10 @@ import { useState } from "react";
 import { PergolaViewer } from "./viewer/PergolaViewer";
 import { ConfigPanel } from "./ui/ConfigPanel";
 import { EstimatePanel } from "./ui/EstimatePanel";
-import { QuoteModal } from "./ui/QuoteModal";
 
 type Tab = "design" | "estimate";
 
 export function Configurator() {
-  const [quoteOpen, setQuoteOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("design");
 
   return (
@@ -19,7 +17,7 @@ export function Configurator() {
         <PergolaViewer />
         <header className="pointer-events-none absolute left-4 top-4">
           <h1 className="text-base font-semibold text-zinc-900">Pergola &amp; Deck Configurator</h1>
-          <p className="text-xs text-zinc-500">Design it, price it, get a quote.</p>
+          <p className="text-xs text-zinc-500">Design it, price it.</p>
         </header>
       </div>
 
@@ -45,25 +43,10 @@ export function Configurator() {
             <ConfigPanel />
           </div>
           <div className={`${tab === "estimate" ? "block" : "hidden"} lg:mt-8 lg:block`}>
-            <EstimatePanel onQuote={() => setQuoteOpen(true)} />
+            <EstimatePanel />
           </div>
         </div>
-
-        {/* Sticky CTA on mobile design tab */}
-        {tab === "design" && (
-          <div className="border-t border-zinc-200 p-3 lg:hidden">
-            <button
-              type="button"
-              onClick={() => setQuoteOpen(true)}
-              className="w-full rounded-md bg-amber-400 px-4 py-2.5 text-sm font-semibold text-zinc-900"
-            >
-              Get a Quote
-            </button>
-          </div>
-        )}
       </aside>
-
-      <QuoteModal open={quoteOpen} onClose={() => setQuoteOpen(false)} />
     </div>
   );
 }

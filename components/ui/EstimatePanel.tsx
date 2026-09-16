@@ -16,7 +16,7 @@ export function useEstimate() {
   return useMemo(() => calculateEstimate(config), [config]);
 }
 
-export function EstimatePanel({ onQuote }: { onQuote: () => void }) {
+export function EstimatePanel() {
   const estimate = useEstimate();
 
   return (
@@ -51,13 +51,6 @@ export function EstimatePanel({ onQuote }: { onQuote: () => void }) {
         <div className="mt-1 text-[11px] text-zinc-400">
           {estimate.areaM2} m² deck · materials only, excl. VAT and installation
         </div>
-        <button
-          type="button"
-          onClick={onQuote}
-          className="mt-4 w-full rounded-md bg-amber-400 px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:bg-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-zinc-900"
-        >
-          Get a Quote
-        </button>
       </div>
     </div>
   );
