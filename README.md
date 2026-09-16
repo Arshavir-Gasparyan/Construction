@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pergola & Deck Configurator
 
-## Getting Started
+Browser-based 3D configurator for a timber pergola on a deck. Built with Next.js (App Router), TypeScript, React Three Fiber, drei and Zustand.
 
-First, run the development server:
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000 (use PORT=xxxx if 3000 is taken)
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Parametric width / length / height; the 3D model, material list and price update live.
+- Decking material (WPC or larch) with material-specific colours, plus a frame finish.
+- Orbit / zoom controls with damping, on-demand rendering (no idle GPU load).
+- Material take-off: decking, joists, posts, beams, rafters, clips, screws.
+- Price estimate and a "Get a Quote" form (logs to the console for now; wire to an API route or CRM).
+- Responsive: side panel on desktop, viewer + tabbed panel on mobile.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Structure
 
-## Learn More
+```
+lib/pergola/
+  types.ts        shared types (config, parts, layout)
+  catalog.ts      materials, colours, finishes, profiles, prices, limits
+  layout.ts       pure function: dimensions -> list of rectangular parts (metres)
+  calculator.ts   pure function: config -> bill of materials + price
+  store.ts        Zustand store for the current configuration
+components/viewer/
+  PergolaViewer   client-only loader for the scene (next/dynamic, ssr: false)
+  Scene           Canvas, lights, ground, orbit controls, camera framing
+  PergolaModel    renders the layout with one InstancedMesh per part group
+  woodTexture     small procedural grain texture
+components/ui/    control panel, estimate panel, quote modal
+components/Configurator.tsx   page layout (viewer + panel)
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Performance notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+All parts share a single unit `BoxGeometry` and are drawn as five instanced meshes (posts, beams, rafters, joists, decking), so the whole structure is five draw calls regardless of size. The canvas uses `frameloop="demand"` and only re-renders on interaction or configuration changes.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Adding AR later
 
-## Deploy on Vercel
+`buildLayout()` describes the structure as plain data and `PergolaModel` is independent of camera, lights and controls. For AR either:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- drop `<PergolaModel />` into a WebXR session (`@react-three/xr`), or
+- export the same scene to GLB/USDZ with three's `GLTFExporter` / `USDZExporter` for Quick Look / Scene Viewer.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Prices in `catalog.ts` are placeholders; replace them with real rates.
