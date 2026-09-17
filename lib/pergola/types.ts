@@ -1,10 +1,38 @@
 export type MaterialId = "wpc" | "larch";
 
+/**
+ * A photographed, seamless wood surface. Files live under `public/` and are
+ * referenced by URL. The grain must run top-to-bottom in the image (portrait
+ * plank photo); the viewer maps the image height along the board length.
+ */
+export type WoodTexture = {
+  /** Colour (albedo) image: jpg/png/webp, seamless, evenly lit. */
+  color: string;
+  /** Optional tangent-space normal map (OpenGL convention, green = up). */
+  normal?: string;
+  /** Optional roughness map. The material's `roughness` multiplies it. */
+  roughness?: string;
+  /** Physical size the image covers, in metres: [across grain, along grain]. */
+  size: [number, number];
+  /** Strength of the normal map relief (default 1). */
+  normalScale?: number;
+  /**
+   * Only used when the texture is tinted to a catalogue colour: how much of
+   * the photo's light/dark grain variation to keep (1 = as photographed).
+   */
+  contrast?: number;
+};
+
 export type ColorOption = {
   id: string;
   name: string;
-  /** Hex color used for the 3D render and the swatch. */
+  /** Hex colour used for the swatch, and for the 3D render when no photo is given. */
   hex: string;
+  /**
+   * Photo of this exact colour. When set it is rendered as-is; when omitted the
+   * material's shared texture is tinted to `hex`.
+   */
+  texture?: WoodTexture;
 };
 
 export type MaterialOption = {
@@ -14,9 +42,20 @@ export type MaterialOption = {
   colors: ColorOption[];
   /** Roughness for the PBR material (0 = glossy, 1 = matte). */
   roughness: number;
+  /** Shared grain for colours without their own photo; tinted to each colour's hex. */
+  texture: WoodTexture;
 };
 
 export type FrameFinish = ColorOption;
+
+/** Everything the viewer needs to build one wood material. */
+export type WoodLook = {
+  texture: WoodTexture;
+  hex: string;
+  /** true = tint `texture.color` to `hex`; false = use the photo unchanged. */
+  tint: boolean;
+  roughness: number;
+};
 
 /** Dimensions in centimetres (what the UI works with). */
 export type Dimensions = {

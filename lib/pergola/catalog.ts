@@ -1,4 +1,4 @@
-import type { FrameFinish, MaterialId, MaterialOption } from "./types";
+import type { FrameFinish, MaterialId, MaterialOption, WoodLook, WoodTexture } from "./types";
 
 /** Slider limits, in centimetres. */
 export const LIMITS = {
@@ -23,12 +23,37 @@ export const PROFILE = {
   bracket: { clearance: 0.012, sleeveLength: 0.35, capDrop: 0.24, baseHeight: 0.12 },
 } as const;
 
+/**
+ * Wood surfaces. The two below are CC0 placeholders from polyhaven.com
+ * (oak_veneer_01, ash_veneer) until the client supplies product photos.
+ * See README "Product textures" for how to add real ones.
+ */
+export const TEXTURES = {
+  /** Clear-grained sawn timber: larch decking and the frame. */
+  oak: {
+    color: "/textures/oak-veneer/color.jpg",
+    normal: "/textures/oak-veneer/normal.jpg",
+    size: [1.83, 1.83],
+    normalScale: 0.8,
+    contrast: 2,
+  },
+  /** Fine, even grain: stands in for embossed WPC boards. */
+  ash: {
+    color: "/textures/ash-veneer/color.jpg",
+    normal: "/textures/ash-veneer/normal.jpg",
+    size: [1, 1],
+    normalScale: 0.6,
+    contrast: 1.6,
+  },
+} satisfies Record<string, WoodTexture>;
+
 export const MATERIALS: MaterialOption[] = [
   {
     id: "wpc",
     name: "WPC",
     description: "Wood-plastic composite. Low maintenance, colour-fast, no splinters.",
     roughness: 0.55,
+    texture: TEXTURES.ash,
     colors: [
       { id: "anthracite", name: "Anthracite", hex: "#3d4043" },
       { id: "stone-grey", name: "Stone grey", hex: "#7c7a74" },
@@ -41,6 +66,7 @@ export const MATERIALS: MaterialOption[] = [
     name: "Larch",
     description: "Siberian larch. Natural wood grain, weathers to silver-grey if left untreated.",
     roughness: 0.8,
+    texture: TEXTURES.oak,
     colors: [
       { id: "natural", name: "Natural", hex: "#c9a066" },
       { id: "honey", name: "Honey oil", hex: "#b47a3a" },
@@ -49,6 +75,9 @@ export const MATERIALS: MaterialOption[] = [
     ],
   },
 ];
+
+export const FRAME_TEXTURE: WoodTexture = TEXTURES.oak;
+export const FRAME_ROUGHNESS = 0.75;
 
 export const FRAME_FINISHES: FrameFinish[] = [
   { id: "cedar", name: "Cedar", hex: "#b8763f" },
@@ -101,4 +130,20 @@ export function getColor(materialId: MaterialId, colorId: string) {
 
 export function getFrameFinish(id: string): FrameFinish {
   return FRAME_FINISHES.find((f) => f.id === id) ?? FRAME_FINISHES[0];
+}
+
+/** Resolves the decking material + colour to the texture the viewer should show. */
+export function getDeckingLook(materialId: MaterialId, colorId: string): WoodLook {
+  const material = getMaterial(materialId);
+  const color = getColor(materialId, colorId);
+  return color.texture
+    ? { texture: color.texture, hex: color.hex, tint: false, roughness: material.roughness }
+    : { texture: material.texture, hex: color.hex, tint: true, roughness: material.roughness };
+}
+
+export function getFrameLook(frameFinishId: string): WoodLook {
+  const finish = getFrameFinish(frameFinishId);
+  return finish.texture
+    ? { texture: finish.texture, hex: finish.hex, tint: false, roughness: FRAME_ROUGHNESS }
+    : { texture: FRAME_TEXTURE, hex: finish.hex, tint: true, roughness: FRAME_ROUGHNESS };
 }
